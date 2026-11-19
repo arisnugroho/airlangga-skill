@@ -1,6 +1,6 @@
 # Panduan Karakter dan Aksi
 
-Baca file ini kapan pun ada orang atau kegiatan manusia di layar, terutama untuk gaya pixel-art atau simulasi (misalnya ala WorldBox). Kode siap pakai: `scripts/karakter_pixel.py` (sprite manusia + aksi) dan `scripts/demo_aktivitas.py` (contoh shot).
+Baca file ini kapan pun ada orang atau kegiatan manusia di layar, terutama untuk gaya pixel-art atau simulasi (misalnya ala WorldBox). Kode siap pakai: `scripts/karakter_pixel.py` (sprite manusia + aksi), `scripts/shot_library.py` (16 jenis shot aktivitas 960x540 + jadwal dari SRT, tabel kegiatan di bawah memakai nama jenisnya), `scripts/pixel_kit.py` (font bitmap, panel HUD, sprite bangunan), dan `scripts/demo_aktivitas.py` (contoh sederhana). Alur lengkap ada di `references/pipeline-simulasi-pixel.md`.
 
 ## Daftar isi
 1. Karakter harus berbentuk manusia
@@ -20,13 +20,14 @@ Setiap orang punya kepala, badan, dua tangan, dua kaki, dan bergerak (jalan, men
 
 Orang di `karakter_pixel.py` setinggi 13 unit. Satu unit = `k` piksel internal, dan piksel internal diperbesar sesuai rasio render (misalnya 4x dari 480x270 ke 1920x1080).
 
-| Jenis shot | Tinggi orang di layar akhir | Contoh `k` pada render 480x270 (4x) |
-|---|---|---|
-| Shot lebar ramai | minimal 40 px | `k=1` (52 px) atau `k=2` (104 px) |
-| Shot sedang (kelompok) | 150 sampai 250 px | `k=3` sampai `k=4` |
-| Close-up aktivitas | 30 sampai 45 persen tinggi layar (sekitar 330 sampai 480 px) | `k=6` sampai `k=8` |
+| Jenis shot | Tinggi orang di layar akhir | `k` pada render 960x540 (2x, disarankan) | `k` pada 480x270 (4x) |
+|---|---|---|---|
+| Shot lebar padat (ratusan orang) | minimal 26 px | `k=1` (26 px) | tidak disarankan (`k=1` = 52 px terlalu besar untuk keramaian) |
+| Shot lebar, sedikit orang | 50 sampai 100 px | `k=2` sampai `k=4` | `k=1` sampai `k=2` |
+| Shot sedang (kelompok) | 150 sampai 250 px | `k=4` sampai `k=6` | `k=3` sampai `k=4` |
+| Close-up aktivitas | sekitar 25 persen tinggi layar atau lebih (260 px dan lebih) | `k=9` sampai `k=10` | `k=5` sampai `k=6` |
 
-Kalau merender langsung 1920x1080 tanpa pembesaran, kalikan `k` dengan 4. Kecil dari batas ini = ulangi.
+Orang 13 unit pada `k=1` di 960x540 hanya 26 px di layar akhir. Itu masih terbaca sebagai manusia, tetapi kecil. Karena itu shot lebar yang padat dipakai bersama zoom kamera (pandangan 1,5x sampai 2,3x) dan close-up aksi, bukan sebagai satu-satunya tampilan. Kalau merender langsung 1920x1080 tanpa pembesaran, kalikan `k` dengan 2 dari kolom 960x540. Lebih kecil dari batas ini = ulangi.
 
 ## 3. Jenis shot dan kapan dipakai
 
@@ -64,6 +65,17 @@ Pola ritme yang disarankan: lebar, aksi, lebar. Kamera atau latar harus tetap be
 Tabel ini contoh. Kegiatan lain diperlakukan dengan prinsip yang sama: tempat yang tepat, alat yang tepat, gerakan yang terbaca.
 
 ## 6. Cara membuat shot aksi
+
+Cara cepat: pakai `shot_library` (jenis `tambang`, `tebang`, `bangun`, `angkut`, `cangkul`, `parit`, `pasar`, `forge`, `daging`, `dingin`, `rapat`, `banjir`, `tanggul`, `jalan`, `perahu`, `tanam`, `bagi`):
+
+```python
+import shot_library as sl
+env = sl.env_preset('musim_dingin')           # lingkungan: musim_semi, musim_panas, musim_gugur, musim_dingin, tropis_kemarau, tropis_hujan, gurun
+jadwal = sl.buat_jadwal('VO.srt', [(25, 26, 'tebang', {}), (26, 28, 'bangun', {'spr': 'hut'})])
+sh = sl.shot_aktif(T, jadwal)
+if sh: frame = sl.shot_frame(T, sh, env)
+```
+Jenis di luar daftar (misalnya `tambang`) dibuat dengan fungsi `sc_*` baru mengikuti pola yang ada, lalu didaftarkan di `SCENES`. Cara manual:
 
 ```python
 from karakter_pixel import person, blit

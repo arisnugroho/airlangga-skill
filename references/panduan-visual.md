@@ -51,7 +51,7 @@ Aturan:
 
 Aset penting jangan dibiarkan diam kecuali memang ada momen jeda yang disengaja.
 
-Teknik: scale in/out, gerak terarah dan rotasi halus, parallax dan lapisan kedalaman, reveal dengan mask, zoom kamera terkontrol, cropping kreatif, gerak melayang dan gerak sekunder, motion blur dan bayangan lembut, serta hubungan visual antara aset dan teks.
+Teknik: scale in/out, gerak terarah dan rotasi halus, parallax dan lapisan kedalaman, reveal dengan mask, zoom kamera terkontrol (lambat, berarah, jarang, tanpa goyangan; untuk pixel-art lihat `pipeline-simulasi-pixel.md`), cropping kreatif, gerak melayang dan gerak sekunder, motion blur dan bayangan lembut, serta hubungan visual antara aset dan teks.
 
 Variasikan teknik sesuai isi. Gunakan easing profesional (percepatan, perlambatan, overshoot, antisipasi, settling), bukan kecepatan konstan.
 

@@ -18,7 +18,7 @@ Semua komunikasi dengan user memakai Bahasa Indonesia.
 | Jumlah frame | Durasi total (detik) × 30. Contoh: 43 detik = 1.290 frame |
 | Format | MP4, video H.264, audio AAC |
 | Resolusi | Ikuti orientasi video referensi. Tanpa referensi: tanyakan, dan kalau tidak dijawab pakai 1080x1920 (portrait). Landscape = 1920x1080 |
-| Karakter manusia | Kalau ada orang di layar: berbentuk manusia (kepala, badan, tangan, kaki), bukan titik. Tinggi minimal 40 px di layar akhir pada shot lebar. Lihat `references/panduan-karakter-dan-aksi.md` |
+| Karakter manusia | Kalau ada orang di layar: berbentuk manusia (kepala, badan, tangan, kaki), bukan titik. Minimal 26 px di layar akhir pada shot lebar yang padat (kepala, badan, kaki masih terbedakan); disarankan 50 px atau lebih bila orangnya sedikit, dan zoom dekat untuk keramaian. Lihat `references/panduan-karakter-dan-aksi.md` |
 | Gaya visual | **2D editorial** (default, lihat `references/panduan-visual.md`) atau **3D voxel gaya Minecraft** (lihat `references/panduan-3d-voxel.md`). Tanyakan kalau user tidak menyebut; pakai 2D kalau tidak dijawab |
 
 Tidak ada durasi tetap. Audio yang menentukan panjang video, dan 180 detik adalah batas atas yang keras. Kalau user menyebut target durasi sendiri (misalnya 30 detik), ikuti selama muat dengan voiceover dan tidak melewati 180 detik.
@@ -85,7 +85,7 @@ Kalau user mengupload gambar, semua visual dibangun dari gambar itu dan disesuai
 1. Inventarisasi semua file, pahami fungsi tiap aset terhadap naskah.
 2. Ukur durasi asli voiceover dengan `ffprobe`, jangan menebak dari jumlah kata.
 3. Cari ritme bicara (jeda, pergantian kalimat, kata yang ditekankan) dengan alat analisis audio. Claude tidak mendengar audio secara langsung, jadi sebut metode yang dipakai dan akui kalau timing per kata hanya perkiraan.
-4. Kalau ada file `.srt`: baca untuk urutan kalimat, tetapi jangan percaya ejaannya (hasil transkripsi otomatis sering salah) dan jangan menyalinnya ke layar. Waktu pastinya tetap dari analisis jeda audio (`references/render-dan-verifikasi.md` bagian 12).
+4. Kalau ada file `.srt`: baca untuk urutan kalimat, tetapi jangan percaya ejaannya (hasil transkripsi otomatis sering salah) dan jangan menyalinnya ke layar. Waktu pastinya tetap dari analisis jeda audio (`references/render-dan-verifikasi.md` bagian 12). Kalau SRT dipakai sebagai patokan waktu adegan, cocokkan beberapa titik dengan `silencedetect` dan akui bahwa timestamp SRT otomatis hanya perkiraan.
 5. Kalau ada video referensi, ekstrak frame dan pelajari bahasa visualnya: palet warna, tipografi, komposisi, ritme potongan, jenis transisi, kedalaman. Referensi hanya sumber inspirasi. Jangan menyalin adegan, penempatan teks, atau urutan animasinya.
 
 Durasi video final dihitung dari audio yang sebenarnya:
@@ -97,6 +97,7 @@ Contoh: voiceover 37,3 detik → 37,3 + 2,5 = 39,8 → video 40 detik (1.200 fra
 
 - **Durasi total 180 detik atau kurang**: lanjut. Angka hasil hitungan menjadi durasi pasti video. Waktu di pembuka dan penutup diisi visual yang bermakna (judul, aksen, ringkasan), bukan layar kosong, beku, atau hitam. Suara tidak diregangkan.
 - **Durasi total lebih dari 180 detik** (artinya voiceover lebih dari sekitar 57 detik): berhenti sebelum render. Jangan memotong kata, mempercepat suara, atau memampatkan jeda. Beri tahu user bahwa voiceover terlalu panjang untuk batas 180 detik dan minta keputusan: naskah dipersingkat, voiceover dibuat ulang, atau solusi lain yang user setujui.
+- **User menyetujui pembagian menjadi beberapa bagian** (misalnya voiceover 8 menit dibagi empat file): batas 180 detik berlaku per file. Potong voiceover di jeda hening sebelum awal kalimat (cek dengan `silencedetect`), hitung durasi dan frame tiap bagian dengan rumus di atas, dan render semuanya dari satu dunia deterministik. Prosedur lengkap dan `scripts/render_parts.py` ada di `references/pipeline-simulasi-pixel.md`. Beri tahu user titik potong dan durasi tiap bagian, dan verifikasi tiap file.
 - **User menyebut target durasi sendiri**: pakai target itu sebagai durasi total kalau voiceover muat (suara + pembuka + penutup ≤ target) dan target tidak lebih dari 180 detik. Kalau tidak muat, jelaskan dan minta keputusan seperti di atas.
 
 ### Tahap 5 — Rencanakan timeline (internal)
@@ -110,12 +111,15 @@ Susun timeline dari 00:00 sampai durasi total hasil hitungan Tahap 4, berdasarka
 - Pola ritme: shot lebar (konteks) lalu shot aktivitas (aksi) lalu kembali ke shot lebar (hasil). Tidak ada kegiatan yang disebut narasi tanpa shot-nya.
 Detail teknis dan tabel kegiatan ada di `references/panduan-karakter-dan-aksi.md`. Tulis daftar ini di timeline internal (kalimat, kegiatan, jenis shot, durasi).
 
+**Kamera dan zoom.** Gerak tidak berarti kamera harus selalu bergerak. Isi gambar yang hidup (orang, air, awan, partikel) sudah cukup. Kamera bergerak jarang, lambat, dan berarah, tanpa goyangan terus-menerus, terutama pada video panjang, karena zoom yang sering atau bergetar membuat penonton pusing. Pada pixel-art pakai `scripts/kamera_pixel.py` dan aturannya di `references/pipeline-simulasi-pixel.md`.
+
 Ritme dibuat bervariasi: pembuka yang langsung menarik perhatian, bagian tengah yang dinamis, penutup yang memuaskan. Penjelasan penting diberi gerak yang lebih tenang dan terbaca. Timeline ini hanya perencanaan. Lanjut ke produksi, jangan berhenti di sini.
 
 ### Tahap 6 — Produksi dan render
 
 Baca file referensi sebelum membangun apa pun:
 - `references/panduan-karakter-dan-aksi.md` kapan pun ada orang atau kegiatan manusia di layar (wajib untuk gaya pixel-art atau simulasi), dengan pustaka `scripts/karakter_pixel.py` dan contoh `scripts/demo_aktivitas.py`.
+- `references/pipeline-simulasi-pixel.md` untuk video pixel-art atau simulasi panjang yang dibagi beberapa bagian (resolusi internal, agen, jadwal shot dari SRT, kamera, HUD, efek suara, menjalankan render), dengan `scripts/render_parts.py`, `scripts/shot_library.py`, `scripts/kamera_pixel.py`, dan `scripts/pixel_kit.py`.
 - `references/panduan-visual.md` untuk arah kreatif, tipografi, animasi aset, transisi, dan mixing audio (berlaku untuk 2D, dan prinsip geraknya juga untuk 3D).
 - `references/render-dan-verifikasi.md` untuk cek lingkungan, pipeline render, perintah ffmpeg, render di latar belakang, dan cara verifikasi.
 - **Hanya untuk gaya 3D voxel**: `references/panduan-3d-voxel.md` (bahasa visual, kamera, animasi) dan `references/render-3d-voxel.md` (pipeline Python `scripts/voxel.py`, jalur WebGL, pengukuran waktu render). Salin `scripts/voxel.py` ke folder kerja sebelum dipakai.
@@ -132,8 +136,9 @@ Periksa file MP4 hasil ekspor dari awal sampai akhir, bukan hanya timeline edito
 4. Transisi halus, bervariasi, dan punya tujuan.
 5. Musik mendukung dan suara tetap dominan.
 6. Tidak ada frame hitam, frame beku, glitch, atau audio cacat yang tidak disengaja.
-7. Karakter terbaca sebagai manusia di frame 1080p hasil ekspor (bukan titik), dan setiap kegiatan yang disebut narasi punya shot aksi yang jelas dan sinkron dengan kalimatnya. Ekstrak satu frame per aksi dan periksa.
-8. MP4 bisa diputar. Durasi aktual sama dengan durasi total yang dihitung di Tahap 4 (dan tidak lebih dari 180 detik), jumlah frame = durasi × 30, 30 fps, codec dan resolusi sesuai spesifikasi, dan tidak ada konten setelah detik terakhir. Semuanya dibuktikan dari metadata file hasil ekspor.
+7. Kamera nyaman: tidak ada getar, goyangan, atau perpindahan zoom yang sering (jarak antar perpindahan sekitar 8 detik atau lebih). Ekstrak beberapa frame berurutan dari bagian yang zoom atau pan dan periksa bahwa tepi benda bergerak mulus. Untuk pixel-art pakai `scripts/kamera_pixel.py`.
+8. Karakter terbaca sebagai manusia di frame 1080p hasil ekspor (bukan titik), dan setiap kegiatan yang disebut narasi punya shot aksi yang jelas dan sinkron dengan kalimatnya. Ekstrak satu frame per aksi dan periksa.
+9. MP4 bisa diputar. Durasi aktual sama dengan durasi total yang dihitung di Tahap 4 (dan tidak lebih dari 180 detik), jumlah frame = durasi × 30, 30 fps, codec dan resolusi sesuai spesifikasi, dan tidak ada konten setelah detik terakhir. Semuanya dibuktikan dari metadata file hasil ekspor.
 
 Perbaiki masalah yang ditemukan sebelum menyerahkan file. Serahkan MP4 lewat `present_files`. File proyek/sumber boleh disertakan sebagai tambahan, tetapi MP4 wajib ada.
 
